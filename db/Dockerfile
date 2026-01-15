@@ -9,27 +9,33 @@ RUN apt update && apt install -y \
     postgresql \
     postgresql-contrib \
     openssh-server \
+    vim \
     sudo
 
 RUN mkdir /var/run/sshd
 
 ARG TOLMACHEV_HASH
 
+# Создание пользователя tolmachev с sudo и паролем
 RUN useradd -m -s /bin/bash tolmachev && \
     echo "tolmachev:${TOLMACHEV_HASH}" | chpasswd -e && \
     usermod -aG sudo tolmachev
 
-# SSH настройки
+# Настройки SSH
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
 
-# PostgreSQL
+# PostgreSQL настройки
 USER postgres
-RUN /etc/init.d/postgresql start && \
+
+# Настройка конфигурации PostgreSQL для внешних подключений
+RUN sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/*/main/postgresql.conf && \
+    sed -i "s/#port = 5432/port = 5432/" /etc/postgresql/*/main/postgresql.conf && \
+    /etc/init.d/postgresql start && \
     psql -c "ALTER USER ${POSTGRES_USER} PASSWORD '${POSTGRES_PASSWORD}';" && \
     psql -c "CREATE DATABASE ${POSTGRES_DB} OWNER ${POSTGRES_USER};"
-USER root
 
+USER root
 
 EXPOSE 22 5432
 

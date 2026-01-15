@@ -5,6 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y \
     openssh-server \
     sudo \
+    vim \
     postgresql-client
 
 RUN mkdir /var/run/sshd
