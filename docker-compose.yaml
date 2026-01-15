@@ -6,7 +6,7 @@ services:
     container_name: db-vm
     hostname: db-vm
     environment:
-      - TOLMACHEV_HASH=${Tolmachev_HASH}
+      - TOLMACHEV_HASH=${TOLMACHEV_HASH}
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=labdb
