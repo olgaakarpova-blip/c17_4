@@ -11,7 +11,9 @@ RUN apt update && apt install -y \
     openssh-server \
     vim \
     sudo \
-    net-tools
+    net-tools \
+    less \
+    iproute2
 
 RUN mkdir /var/run/sshd
 
@@ -26,18 +28,17 @@ RUN useradd -m -s /bin/bash tolmachev && \
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
 
-# PostgreSQL настройки
 USER postgres
 
-# Настройка listen_addresses и порта
-RUN sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/*/main/postgresql.conf && \
-    sed -i "s/#port = 5432/port = 5432/" /etc/postgresql/*/main/postgresql.conf
-
-# Разрешаем подключение к labdb всем пользователям с любого IP (для лаборатории)
-RUN echo "host    labdb    all     0.0.0.0/0    scram-sha-256" >> /etc/postgresql/*/main/pg_hba.conf
-
-# Запуск PostgreSQL для создания базы и пользователя
-RUN /etc/init.d/postgresql start && \
+# Получаем версию PostgreSQL для правильного пути к конфигам
+RUN PGVER=$(ls /etc/postgresql) && \
+    # Настройка listen_addresses и порта
+    sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/$PGVER/main/postgresql.conf && \
+    sed -i "s/#port = 5432/port = 5432/" /etc/postgresql/$PGVER/main/postgresql.conf && \
+    # Добавляем правило в pg_hba.conf для всех IP (0.0.0.0/0)
+    echo "host    labdb    all     0.0.0.0/0    scram-sha-256" >> /etc/postgresql/$PGVER/main/pg_hba.conf && \
+    # Старт PostgreSQL для создания пользователя и базы
+    /etc/init.d/postgresql start && \
     psql -c "ALTER USER ${POSTGRES_USER} PASSWORD '${POSTGRES_PASSWORD}';" && \
     psql -c "CREATE DATABASE ${POSTGRES_DB} OWNER ${POSTGRES_USER};"
 
