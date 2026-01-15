@@ -10,6 +10,7 @@ RUN apt update && apt install -y \
 RUN mkdir /var/run/sshd
 
 ARG TOLMACHEV_HASH
+
 RUN useradd -m -s /bin/bash tolmachev && \
     echo "tolmachev:${TOLMACHEV_HASH}" | chpasswd -e && \
     usermod -aG sudo tolmachev

@@ -1,6 +1,9 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=postgres
+ENV POSTGRES_DB=labdb
 
 RUN apt update && apt install -y \
     postgresql \
@@ -11,6 +14,7 @@ RUN apt update && apt install -y \
 RUN mkdir /var/run/sshd
 
 ARG TOLMACHEV_HASH
+
 RUN useradd -m -s /bin/bash tolmachev && \
     echo "tolmachev:${TOLMACHEV_HASH}" | chpasswd -e && \
     usermod -aG sudo tolmachev
@@ -22,9 +26,10 @@ RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/
 # PostgreSQL
 USER postgres
 RUN /etc/init.d/postgresql start && \
-    psql -c "ALTER USER postgres PASSWORD 'postgres';"
-
+    psql -c "ALTER USER ${POSTGRES_USER} PASSWORD '${POSTGRES_PASSWORD}';" && \
+    psql -c "CREATE DATABASE ${POSTGRES_DB} OWNER ${POSTGRES_USER};"
 USER root
+
 
 EXPOSE 22 5432
 
