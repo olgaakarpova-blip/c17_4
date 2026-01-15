@@ -2,24 +2,27 @@ version: '3.9'
 
 services:
   db-vm:
-    build: ./db
+    build:
+      context: ./db
+      args:
+        TOLMACHEV_HASH: ${TOLMACHEV_HASH}
     container_name: db-vm
     hostname: db-vm
     environment:
-      - TOLMACHEV_HASH=${TOLMACHEV_HASH}
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=labdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: labdb
     networks:
       users_net:
         ipv4_address: 192.168.110.2
 
   admin-vm:
-    build: ./admin
+    build:
+      context: ./admin
+      args:
+        TOLMACHEV_HASH: ${TOLMACHEV_HASH}
     container_name: admin-vm
     hostname: admin-vm
-    environment:
-      - TOLMACHEV_HASH=${TOLMACHEV_HASH}
     depends_on:
       - db-vm
     networks:
