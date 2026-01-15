@@ -6,13 +6,13 @@ services:
     container_name: db-vm
     hostname: db-vm
     environment:
-      - Tolmachev_HASH=${Tolmachev_HASH}
+      - TOLMACHEV_HASH=${Tolmachev_HASH}
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=labdb
     networks:
       users_net:
-        ipv4_address: 192.168.101.2
+        ipv4_address: 192.168.110.2
 
   admin-vm:
     build: ./admin
@@ -24,11 +24,11 @@ services:
       - db-vm
     networks:
       users_net:
-        ipv4_address: 192.168.101.3
+        ipv4_address: 192.168.110.3
 
 networks:
   users_net:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.101.0/24
+        - subnet: 192.168.110.0/24
