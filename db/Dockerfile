@@ -10,7 +10,8 @@ RUN apt update && apt install -y \
     postgresql-contrib \
     openssh-server \
     vim \
-    sudo
+    sudo \
+    net-tools
 
 RUN mkdir /var/run/sshd
 
@@ -28,10 +29,15 @@ RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/
 # PostgreSQL настройки
 USER postgres
 
-# Настройка конфигурации PostgreSQL для внешних подключений
+# Настройка listen_addresses и порта
 RUN sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/*/main/postgresql.conf && \
-    sed -i "s/#port = 5432/port = 5432/" /etc/postgresql/*/main/postgresql.conf && \
-    /etc/init.d/postgresql start && \
+    sed -i "s/#port = 5432/port = 5432/" /etc/postgresql/*/main/postgresql.conf
+
+# Разрешаем подключение к labdb всем пользователям с любого IP (для лаборатории)
+RUN echo "host    labdb    all     0.0.0.0/0    scram-sha-256" >> /etc/postgresql/*/main/pg_hba.conf
+
+# Запуск PostgreSQL для создания базы и пользователя
+RUN /etc/init.d/postgresql start && \
     psql -c "ALTER USER ${POSTGRES_USER} PASSWORD '${POSTGRES_PASSWORD}';" && \
     psql -c "CREATE DATABASE ${POSTGRES_DB} OWNER ${POSTGRES_USER};"
 
